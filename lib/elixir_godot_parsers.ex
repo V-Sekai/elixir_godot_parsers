@@ -92,15 +92,26 @@ defmodule ElixirGodotParsers do
   """
   defparsec(
     :color_parser,
-    string("[color r=")
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string(" g="))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string(" b="))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string(" a="))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("]")),
+    choice([
+      string("Color(")
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(", "))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(", "))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(", "))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(")")),
+      string("[color r=")
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(" g="))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(" b="))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(" a="))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string("]"))
+    ]),
     debug: false
   )
 
@@ -109,13 +120,24 @@ defmodule ElixirGodotParsers do
   """
   defparsec(
     :transform_parser,
-    string("[transform cell0=")
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string(" cell1="))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string(" cell2="))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("]")),
+    choice([
+      string("Transform3D(")
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(", "))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(", "))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(", "))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(")")),
+      string("[transform cell0=")
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(" cell1="))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string(" cell2="))
+      |> repeat(utf8_string([], min: 1))
+      |> optional(string("]"))
+    ]),
     debug: false
   )
 

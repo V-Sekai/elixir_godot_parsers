@@ -41,12 +41,38 @@ defmodule ElixirGodotParsersTest do
   @camera "[node name=\"Camera3D\" type=\"Camera3D\" parent=\".\"] transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 1, 3)"
 
   test "parses OmniLight3D node correctly" do
-    assert {:ok, ["[node name=\"", "OmniLight3D\" type=\"OmniLight3D\" parent=\".\"] light_color = Color(1, 0.698039, 0.321569, 1) omni_range = 10.0"], "", %{}, {1, 0}, 119} =
+    assert {:ok,
+            [
+              "[node name=\"",
+              "OmniLight3D\" type=\"OmniLight3D\" parent=\".\"] light_color = Color(1, 0.698039, 0.321569, 1) omni_range = 10.0"
+            ], "", %{}, {1, 0},
+            119} =
              Parser.nodes_parser(@omni_light)
   end
 
   test "parses Camera3D node correctly" do
-    assert {:ok, ["[node name=\"", "Camera3D\" type=\"Camera3D\" parent=\".\"] transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 1, 3)"], "", %{}, {1, 0}, 136} =
+    assert {:ok,
+            [
+              "[node name=\"",
+              "Camera3D\" type=\"Camera3D\" parent=\".\"] transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 1, 3)"
+            ], "", %{}, {1, 0},
+            136} =
              Parser.nodes_parser(@camera)
+  end
+
+  @omni_light_color "Color(1, 0.698039, 0.321569, 1)"
+  @camera_transform "Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 1, 3)"
+
+  test "parses OmniLight3D color correctly" do
+    assert {:ok, ["Color(", "1, 0.698039, 0.321569, 1)"], "", %{}, {1, 0}, 31} =
+             Parser.color_parser(@omni_light_color)
+  end
+
+  test "parses Camera3D transform correctly" do
+    assert {:ok,
+            ["Transform3D(", "1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 1, 3)"],
+            "", %{}, {1, 0},
+            74} =
+             Parser.transform_parser(@camera_transform)
   end
 end
