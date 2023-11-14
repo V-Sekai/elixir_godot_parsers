@@ -164,17 +164,32 @@ defmodule ElixirGodotParsers do
     debug: false
   )
 
+
   @doc """
   Parses TSCN files.
   """
-  def tscn_parser do
+  def tscn_parser(tscn_string) do
+    tscn_string
+    |> String.split("\n")
+    |> Enum.map(&parse_line/1)
+  end
+
+  defp parse_line(line) do
+    cond do
+      line =~ ~r/^\[gd_scene/ -> file_descriptor_parser(line)
+      line =~ ~r/^\[node/ -> nodes_parser(line)
+      line =~ ~r/^\[ext_resource/ -> external_resources_parser(line)
+      line =~ ~r/^\[sub_resource/ -> internal_resources_parser(line)
+      line =~ ~r/^\[connection/ -> connections_parser(line)
+      true -> {:ok, line}
+    end
   end
 
   @doc """
   Parses ESCN files.
   """
-  def escn_parser do
-    # ESCN parsing may be identical to TSCN, with additional handling for exported properties
+  def escn_parser(escn_string) do
+    tscn_parser(escn_string)
   end
 
   @doc """

@@ -75,4 +75,47 @@ defmodule ElixirGodotParsersTest do
             74} =
              Parser.transform_parser(@camera_transform)
   end
+
+  @connection "[connection signal=\"timeout\" from=\"Timer\" to=\".\" method=\"_on_Timer_timeout\"]"
+  @external_resource "[ext_resource path=\"res://icon.png\" type=\"Texture\" id=1]"
+
+  test "parses external resource descriptor correctly" do
+    # Convert the list to a binary
+    binary_external_resource = Enum.join(@external_resource)
+
+    expected_result = {:ok, ["[ext_resource path=\"", "res://icon.png\" type=\"Texture\" id=1]"], "", %{}, {1, 0}, 56}
+
+    assert expected_result == ElixirGodotParsers.external_resources_parser(binary_external_resource, [])
+  end
+
+
+  test "parses connection descriptor correctly" do
+    assert {:ok,
+            [
+              "[connection signal=\"",
+              "timeout\" from=\"Timer\" to=\".\" method=\"_on_Timer_timeout\"]"
+            ], "", %{}, {1, 0},
+            76} =
+             Parser.connections_parser(@connection)
+  end
+
+  @gd_scene_with_nodes "[gd_scene load_steps=2 format=2]\n[node name=\"Node\" type=\"Node\"]"
+  @gd_scene_with_resources "[gd_scene load_steps=2 format=2]\n[ext_resource path=\"res://icon.png\" type=\"Texture\" id=1]"
+
+  test "parses gd_scene with nodes correctly" do
+    assert [
+             {:ok, ["[gd_scene load_steps=", "2 format=2]"], "", %{}, {1, 0}, 32},
+             {:ok, ["[node name=\"", "Node\" type=\"Node\"]"], "", %{}, {1, 0}, 30}
+           ] =
+             Parser.tscn_parser(@gd_scene_with_nodes)
+  end
+
+  test "parses gd_scene with resources correctly" do
+    assert [
+             {:ok, ["[gd_scene load_steps=", "2 format=2]"], "", %{}, {1, 0}, 32},
+             {:ok, ["[ext_resource path=\"", "res://icon.png\" type=\"Texture\" id=1]"], "", %{},
+              {1, 0}, 56}
+           ] =
+             Parser.tscn_parser(@gd_scene_with_resources)
+  end
 end
