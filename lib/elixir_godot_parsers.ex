@@ -1,3 +1,15 @@
+defmodule Color do
+  defstruct r: 0, g: 0, b: 0, a: 0
+end
+
+defmodule Transform3D do
+  defstruct cell0: 0, cell1: 0, cell2: 0
+end
+
+defmodule Transform2D do
+  defstruct cell0: 0, cell1: 0
+end
+
 defmodule ElixirGodotParsers do
   import NimbleParsec
 
