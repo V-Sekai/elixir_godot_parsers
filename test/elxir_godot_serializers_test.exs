@@ -59,7 +59,4 @@ defmodule ElixirGodotSerializersTest do
 
   test "serialize_tscn/1" do
   end
-
-  test "serialize_escn/1" do
-  end
 end
