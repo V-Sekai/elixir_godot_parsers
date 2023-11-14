@@ -3,22 +3,22 @@ defmodule Color do
 end
 
 defmodule Transform3D do
-  defstruct cell0: 0,
-            cell1: 0,
-            cell2: 0,
-            cell3: 0,
-            cell4: 0,
-            cell5: 0,
-            cell6: 0,
-            cell7: 0,
-            cell8: 0,
-            cell9: 0,
-            cell10: 0,
-            cell11: 0
+  defstruct cell_0: 0,
+            cell_1: 0,
+            cell_2: 0,
+            cell_3: 0,
+            cell_4: 0,
+            cell_5: 0,
+            cell_6: 0,
+            cell_7: 0,
+            cell_8: 0,
+            cell_9: 0,
+            cell_10: 0,
+            cell_11: 0
 end
 
 defmodule Transform2D do
-  defstruct cell0: 0, cell1: 0, cell2: 0, cell3: 0
+  defstruct cell_0: 0, cell_1: 0, cell_2: 0, cell_3: 0
 end
 
 defmodule ElixirGodotParsers do
@@ -243,7 +243,7 @@ defmodule ElixirGodotParsers do
   Serializes transform.
   """
   def serialize_transform(transform) do
-    "Transform3D(#{transform.cell0}, #{transform.cell1}, #{transform.cell2}, #{transform.cell3}, #{transform.cell4}, #{transform.cell5}, #{transform.cell6}, #{transform.cell7}, #{transform.cell8}, #{transform.cell9}, #{transform.cell10}, #{transform.cell11})"
+    "Transform3D(#{transform.cell_0}, #{transform.cell_1}, #{transform.cell_2}, #{transform.cell_3}, #{transform.cell_4}, #{transform.cell_5}, #{transform.cell_6}, #{transform.cell_7}, #{transform.cell_8}, #{transform.cell_9}, #{transform.cell_10}, #{transform.cell_11})"
   end
 
   @doc """

@@ -10,18 +10,18 @@ defmodule ElixirGodotSerializersTest do
   @connection %{signal: "Signal1", from: "From1", to: "To1", method: "Method1"}
   @color %{r: 255, g: 255, b: 255, a: 255}
   @transform %{
-    cell0: 0,
-    cell1: 1,
-    cell2: 2,
-    cell3: 3,
-    cell4: 4,
-    cell5: 5,
-    cell6: 6,
-    cell7: 7,
-    cell8: 8,
-    cell9: 9,
-    cell10: 10,
-    cell11: 11
+    cell_0: 0,
+    cell_1: 1,
+    cell_2: 2,
+    cell_3: 3,
+    cell_4: 4,
+    cell_5: 5,
+    cell_6: 6,
+    cell_7: 7,
+    cell_8: 8,
+    cell_9: 9,
+    cell_10: 10,
+    cell_11: 11
   }
 
   test "serialize_node/1" do
