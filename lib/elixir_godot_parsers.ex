@@ -25,7 +25,9 @@ end
 
 defmodule ElixirGodotParsers.Transform2D do
   @type t :: %__MODULE__{x: Vector2.t(), y: Vector2.t(), origin: Vector2.t()}
-  defstruct x: %ElixirGodotParsers.Vector2{}, y: %ElixirGodotParsers.Vector2{}, origin: %ElixirGodotParsers.Vector2{}
+  defstruct x: %ElixirGodotParsers.Vector2{},
+            y: %ElixirGodotParsers.Vector2{},
+            origin: %ElixirGodotParsers.Vector2{}
 end
 
 defmodule ElixirGodotParsers.Plane do
@@ -44,12 +46,21 @@ defmodule ElixirGodotParsers.AABB do
 end
 
 defmodule ElixirGodotParsers.Basis do
-  @type t :: %__MODULE__{x: ElixirGodotParsers.Vector3.t(), y: ElixirGodotParsers.Vector3.t(), z: ElixirGodotParsers.Vector3.t()}
-  defstruct x: %ElixirGodotParsers.Vector3{}, y: %ElixirGodotParsers.Vector3{}, z: %ElixirGodotParsers.Vector3{}
+  @type t :: %__MODULE__{
+          x: ElixirGodotParsers.Vector3.t(),
+          y: ElixirGodotParsers.Vector3.t(),
+          z: ElixirGodotParsers.Vector3.t()
+        }
+  defstruct x: %ElixirGodotParsers.Vector3{},
+            y: %ElixirGodotParsers.Vector3{},
+            z: %ElixirGodotParsers.Vector3{}
 end
 
 defmodule ElixirGodotParsers.Transform3D do
-  @type t :: %__MODULE__{basis: ElixirGodotParsers.Basis.t(), origin: ElixirGodotParsers.Vector3.t()}
+  @type t :: %__MODULE__{
+          basis: ElixirGodotParsers.Basis.t(),
+          origin: ElixirGodotParsers.Vector3.t()
+        }
   defstruct basis: %ElixirGodotParsers.Basis{}, origin: %ElixirGodotParsers.Vector3{}
 end
 
@@ -129,151 +140,28 @@ defmodule ElixirGodotParsers.ColorArray do
 end
 
 defmodule ElixirGodotParsers do
-  import NimbleParsec
+  use AbnfParsec,
+    abnf: """
+    ip = first dot second dot third dot fourth
+    dot = "."
+    dec-octet =
+      "25" %x30-35      /   ; 250-255
+      "2" %x30-34 DIGIT /   ; 200-249
+      "1" 2DIGIT        /   ; 100-199
+      %x31-39 DIGIT     /   ; 10-99
+      DIGIT                 ; 0-9
+    first = dec-octet
+    second = dec-octet
+    third = dec-octet
+    fourth = dec-octet
+    """,
+    unbox: ["dec-octet"],
+    ignore: ["dot"],
+    parse: :ip,
+    parse: :nodes
+end
 
-  @doc """
-  Parses nodes in Godot files.
-  """
-  defparsec(
-    :nodes_parser,
-    string("[node name=\"")
-    |> concat(repeat(choice([ascii_string([?\s..?~], min: 1), utf8_char([])])))
-    |> optional(string("\" type=\""))
-    |> concat(repeat(choice([ascii_string([?\s..?~], min: 1), utf8_char([])])))
-    |> optional(string("\"]")),
-    debug: false
-  )
-
-  @doc """
-  Parses file descriptors in Godot files.
-  """
-  defparsec(
-    :file_descriptor_parser,
-    string("[gd_scene load_steps=")
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string(" format="))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string(" uid=\""))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("\"]")),
-    debug: false
-  )
-
-  @doc """
-  Parses external resources in Godot files.
-  """
-  defparsec(
-    :external_resources_parser,
-    string("[ext_resource path=\"")
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("\" type=\""))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("\" id="))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("]")),
-    debug: false
-  )
-
-  @doc """
-  Parses internal resources in Godot files.
-  """
-  defparsec(
-    :internal_resources_parser,
-    string("[sub_resource type=\"")
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("\" id="))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("]")),
-    debug: false
-  )
-
-  @doc """
-  Parses connections in Godot files.
-  """
-  defparsec(
-    :connections_parser,
-    string("[connection signal=\"")
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("\" from=\""))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("\" to=\""))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("\" method=\""))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("\"]")),
-    debug: false
-  )
-
-  @doc """
-  Parses sub_resource descriptor in Godot files.
-  """
-  defparsec(
-    :sub_resource_parser,
-    string("[sub_resource type=\"")
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("\" id="))
-    |> repeat(utf8_string([], min: 1))
-    |> optional(string("]")),
-    debug: false
-  )
-
-  @doc """
-  Parses color in Godot files.
-  """
-  defparsec(
-    :color_parser,
-    choice([
-      string("Color(")
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(", "))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(", "))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(", "))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(")")),
-      string("[color r=")
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(" g="))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(" b="))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(" a="))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string("]"))
-    ]),
-    debug: false
-  )
-
-  @doc """
-  Parses transform in Godot files.
-  """
-  defparsec(
-    :transform_parser,
-    choice([
-      string("Transform3D(")
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(", "))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(", "))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(", "))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(")")),
-      string("[transform cell0=")
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(" cell1="))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string(" cell2="))
-      |> repeat(utf8_string([], min: 1))
-      |> optional(string("]"))
-    ]),
-    debug: false
-  )
-
-  @doc """
-  Parses TSCN files.
-  """
+defmodule ElixirGodot do
   def tscn_parser(tscn_string) do
     tscn_string
     |> String.split("\n")
@@ -281,95 +169,54 @@ defmodule ElixirGodotParsers do
   end
 
   defp parse_line(line) do
-    cond do
-      line =~ ~r/^\[gd_scene/ -> file_descriptor_parser(line)
-      line =~ ~r/^\[node/ -> nodes_parser(line)
-      line =~ ~r/^\[ext_resource/ -> external_resources_parser(line)
-      line =~ ~r/^\[sub_resource/ -> internal_resources_parser(line)
-      line =~ ~r/^\[connection/ -> connections_parser(line)
-      true -> {:ok, line}
-    end
-  end
-
-  @doc """
-  Parses ESCN files.
-  """
-  def escn_parser(escn_string) do
-    tscn_parser(escn_string)
-  end
-
-  @doc """
-  Parses TRES files.
-  """
-  def tres_parser do
-  end
-
-  @doc """
-  Serializes nodes.
-  """
-  def serialize_node(node) do
-    "[node name=\"#{node.name}\" type=\"#{node.type}\"]"
-  end
-
-  @doc """
-  Serializes file descriptors.
-  """
-  def serialize_file_descriptor(descriptor) do
-    "[gd_scene load_steps=#{descriptor.load_steps} format=#{descriptor.format} uid=\"#{descriptor.uid}\"]"
-  end
-
-  @doc """
-  Serializes external resources.
-  """
-  def serialize_external_resource(resource) do
-    "[ext_resource path=\"#{resource.path}\" type=\"#{resource.type}\" id=#{resource.id}]"
-  end
-
-  @doc """
-  Serializes internal resources.
-  """
-  def serialize_internal_resource(resource) do
-    "[sub_resource type=\"#{resource.type}\" id=#{resource.id}]"
-  end
-
-  @doc """
-  Serializes connections.
-  """
-  def serialize_connection(connection) do
-    "[connection signal=\"#{connection.signal}\" from=\"#{connection.from}\" to=\"#{connection.to}\" method=\"#{connection.method}\"]"
-  end
-
-  @doc """
-  Serializes color.
-  """
-  def serialize_color(color) do
-    "Color(#{color.r}, #{color.g}, #{color.b}, #{color.a})"
-  end
-
-  @doc """
-  Serializes transform.
-  """
-  def serialize_transform(transform) do
-    "Transform3D(#{transform.cell_0}, #{transform.cell_1}, #{transform.cell_2}, #{transform.cell_3}, #{transform.cell_4}, #{transform.cell_5}, #{transform.cell_6}, #{transform.cell_7}, #{transform.cell_8}, #{transform.cell_9}, #{transform.cell_10}, #{transform.cell_11})"
-  end
-
-  @doc """
-  Serializes TSCN files.
-  """
-  def serialize_tscn(tscn) do
-    tscn
-    |> Enum.map(&serialize_line/1)
-    |> Enum.join("\n")
-  end
-
-  defp serialize_line(line) do
-    cond do
-      line =~ ~r/^\[gd_scene/ -> serialize_file_descriptor(line)
-      line =~ ~r/^\[node/ -> serialize_node(line)
-      line =~ ~r/^\[ext_resource/ -> serialize_external_resource(line)
-      line =~ ~r/^\[sub_resource/ -> serialize_internal_resource(line)
-      line =~ ~r/^\[connection/ -> serialize_connection(line)
-      true -> line
+    case line do
+      ~r/^\[node/ -> ElixirGodotParsers.parse(:nodes, line)
+      _ -> {:ok, line}
     end
   end
 end
+
+    # """
+    #   file-descriptor = "[gd_scene load_steps=" load-steps " format=" format " uid=\"" uid "\"]"
+    #   load-steps = 1*DIGIT ; one or more digits
+    #   format = 1*DIGIT ; one or more digits
+    #   uid = 1*HEXDIG ; one or more hexadecimal digits
+
+    #   external-resource = "[ext_resource path=\"" path "\" type=\"" resource-type "\" id=" id "]"
+    #   path = *ALPHA "/" *ALPHA ; a simple path rule, you might need to adjust this
+    #   resource-type = 1*ALPHA ; one or more alphabetic characters
+    #   id = 1*DIGIT ; one or more digits
+
+    #   external-resource = "[ext_resource path=\"" path "\" type=\"" resource-type "\" id=" id "]"
+    #   path = *ALPHA "/" *ALPHA ; a simple path rule, you might need to adjust this
+    #   resource-type = 1*ALPHA ; one or more alphabetic characters
+    #   id = 1*DIGIT ; one or more digits
+
+    #   internal-resource = "[sub_resource type=\"" resource-type "\" id=" id "]"
+
+    #   connection = "[connection signal=\"" signal "\" from=\"" from "\" to=\"" to "\" method=\"" method "\"]"
+    #   signal = *CHAR
+    #   from = *CHAR
+    #   to = *CHAR
+    #   method = *CHAR
+
+    #   color = "Color(" r ", " g ", " b ", " a ")"
+    #   r = *DIGIT "." *DIGIT
+    #   g = *DIGIT "." *DIGIT
+    #   b = *DIGIT "." *DIGIT
+    #   a = *DIGIT "." *DIGIT
+
+    #   transform = "Transform3D(" cell-0 ", " cell-1 ", " cell-2 ", " cell-3 ", " cell-4 ", " cell-5 ", " cell-6 ", " cell-7 ", " cell-8 ", " cell-9 ", " cell-10 ", " cell-11 ")"
+    #   cell-0 = *DIGIT "." *DIGIT
+    #   cell-1 = *DIGIT "." *DIGIT
+    #   cell-2 = *DIGIT "." *DIGIT
+    #   cell-3 = *DIGIT "." *DIGIT
+    #   cell-4 = *DIGIT "." *DIGIT
+    #   cell-5 = *DIGIT "." *DIGIT
+    #   cell-6 = *DIGIT "." *DIGIT
+    #   cell-7 = *DIGIT "." *DIGIT
+    #   cell-8 = *DIGIT "." *DIGIT
+    #   cell-9 = *DIGIT "." *DIGIT
+    #   cell-10 = *DIGIT "." *DIGIT
+    #   cell-11 = *DIGIT "." *DIGIT
+    # """,
