@@ -168,5 +168,54 @@ defmodule ElixirGodotParsersTest do
                {:ok, ""}
              ] = Parser.tscn_parser(@gd_resource)
     end
+
+    test "parse_gd_scene" do
+      assert {
+               :ok,
+               [
+                 gd_scene: [
+                   "[",
+                   "gd_scene",
+                   " ",
+                   {:key_value, [{:key, ["load_steps"]}, "=", {:value, [number: ~c"4"]}]},
+                   " ",
+                   {:key_value, [{:key, ["format"]}, "=", {:value, [number: ~c"3"]}]},
+                   " ",
+                   {:key_value,
+                    [
+                      {:key, ["uid"]},
+                      "=",
+                      {:value,
+                       [
+                         "\"",
+                         "uid://",
+                         {:alphanum, ~c"c"},
+                         {:alphanum, ~c"e"},
+                         {:alphanum, ~c"c"},
+                         {:alphanum, ~c"a"},
+                         {:alphanum, ~c"u"},
+                         {:alphanum, ~c"x"},
+                         {:alphanum, ~c"1"},
+                         {:alphanum, ~c"s"},
+                         {:alphanum, ~c"m"},
+                         {:alphanum, ~c"7"},
+                         {:alphanum, ~c"m"},
+                         {:alphanum, ~c"o"},
+                         {:alphanum, ~c"0"},
+                         "\""
+                       ]}
+                    ]},
+                   "]"
+                 ]
+               ],
+               "",
+               %{},
+               {1, 0},
+               58
+             } =
+               Parser.parse_gd_scene(
+                 "[gd_scene load_steps=4 format=3 uid=\"uid://cecaux1sm7mo0\"]"
+               )
+    end
   end
 end
