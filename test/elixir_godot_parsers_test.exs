@@ -3,7 +3,12 @@ defmodule ElixirGodotParsersTest do
 
   describe "echo_string/1" do
     test "returns the original string when parsing is successful" do
-      assert {:ok, ["hello world"], "", %{}, {1, 0}, 11} == ElixirGodotParsers.tscn("hello world")
+      assert {:ok, ["[gd_scene load_steps=5 format=3 uid=\"uid://b2agmmarkv5l3\"]"], "", %{},
+              {1, 0},
+              58} ==
+               ElixirGodotParsers.tscn(
+                 "[gd_scene load_steps=5 format=3 uid=\"uid://b2agmmarkv5l3\"]"
+               )
     end
 
     test "returns an error when parsing fails" do
