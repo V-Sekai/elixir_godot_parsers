@@ -123,8 +123,10 @@ defmodule ElixirGodotParsersTest do
 
   @complex_scene """
   [gd_scene load_steps=4 format=3 uid="uid://cecaux1sm7mo0"]
+
   [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k54se"]
   albedo_color = Color(1, 0.639216, 0.309804, 1)
+
   [node name="OmniLight3D" type="OmniLight3D" parent="."]
   light_color = Color(1, 0.698039, 0.321569, 1)
   omni_range = 10.0
@@ -132,13 +134,21 @@ defmodule ElixirGodotParsersTest do
 
   test "parses complex scene correctly" do
     assert [
-      {:ok, ["[gd_scene load_steps=", "4 format=3 uid=\"uid://cecaux1sm7mo0\"]\r"], "", %{}, {1, 0}, 59},
-      {:ok, ["[sub_resource type=\"", "StandardMaterial3D\" id=\"StandardMaterial3D_k54se\"]\r"], "", %{}, {1, 0}, 71},
-      {:ok, "albedo_color = Color(1, 0.639216, 0.309804, 1)\r"},
-      {:ok, ["[node name=\"", "OmniLight3D\" type=\"OmniLight3D\" parent=\".\"]", 13], "", %{}, {1, 0}, 56},
-      {:ok, "light_color = Color(1, 0.698039, 0.321569, 1)\r"},
-      {:ok, "omni_range = 10.0\r"},
-      {:ok, ""}
-    ] = Parser.tscn_parser(@complex_scene)
+             {:ok, ["[gd_scene load_steps=", "4 format=3 uid=\"uid://cecaux1sm7mo0\"]\r"], "",
+              %{}, {1, 0}, 59},
+             {:ok, "\r"},
+             {:ok,
+              [
+                "[sub_resource type=\"",
+                "StandardMaterial3D\" id=\"StandardMaterial3D_k54se\"]\r"
+              ], "", %{}, {1, 0}, 71},
+             {:ok, "albedo_color = Color(1, 0.639216, 0.309804, 1)\r"},
+             {:ok, "\r"},
+             {:ok, ["[node name=\"", "OmniLight3D\" type=\"OmniLight3D\" parent=\".\"]", 13], "",
+              %{}, {1, 0}, 56},
+             {:ok, "light_color = Color(1, 0.698039, 0.321569, 1)\r"},
+             {:ok, "omni_range = 10.0\r"},
+             {:ok, ""}
+           ] = Parser.tscn_parser(@complex_scene)
   end
 end
