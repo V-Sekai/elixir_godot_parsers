@@ -34,13 +34,38 @@ defmodule ElixirGodotParsers do
     |> ignore(string("\""))
     |> tag(:uid)
 
+  property =
+    ignore(string(" "))
+    |> repeat_while(utf8_char([]), {:not_space, []})
+    |> ignore(string(" = "))
+    |> repeat_while(utf8_char([]), {:not_space, []})
+    |> tag(:property)
+
+  sub_resource =
+    ignore(string("[sub_resource type=\""))
+    |> repeat_while(utf8_char([]), {:not_quote, []})
+    |> ignore(string("\" id=\""))
+    |> repeat_while(utf8_char([]), {:not_quote, []})
+    |> ignore(string("]"))
+    |> tag(:sub_resource)
+
+  internal_resources =
+    sub_resource
+    |> repeat(property)
+    |> tag(:sub_resource_descriptor)
 
   file_descriptor =
     gd_scene
     |> optional(load_steps)
     |> optional(format)
     |> optional(uid)
+    |> choice([ignore(string("]\r\n\r\n")), ignore(string("]"))])
     |> tag(:file_descriptor)
+
+  sub_resource_descriptor =
+    sub_resource
+    |> repeat(property)
+    |> tag(:sub_resource_descriptor)
 
   external_resources = utf8_string(empty(), min: 1)
   internal_resources = utf8_string(empty(), min: 1)
@@ -49,7 +74,7 @@ defmodule ElixirGodotParsers do
 
   document = file_descriptor
     |> optional(external_resources)
-    |> optional(internal_resources)
+    |> optional(sub_resource_descriptor)
     |> optional(nodes)
     |> optional(connections)
 
