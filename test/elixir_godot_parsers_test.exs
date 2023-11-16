@@ -83,11 +83,13 @@ defmodule ElixirGodotParsersTest do
     # Convert the list to a binary
     binary_external_resource = Enum.join(@external_resource)
 
-    expected_result = {:ok, ["[ext_resource path=\"", "res://icon.png\" type=\"Texture\" id=1]"], "", %{}, {1, 0}, 56}
+    expected_result =
+      {:ok, ["[ext_resource path=\"", "res://icon.png\" type=\"Texture\" id=1]"], "", %{}, {1, 0},
+       56}
 
-    assert expected_result == ElixirGodotParsers.external_resources_parser(binary_external_resource, [])
+    assert expected_result ==
+             ElixirGodotParsers.external_resources_parser(binary_external_resource, [])
   end
-
 
   test "parses connection descriptor correctly" do
     assert {:ok,
@@ -117,5 +119,26 @@ defmodule ElixirGodotParsersTest do
               {1, 0}, 56}
            ] =
              Parser.tscn_parser(@gd_scene_with_resources)
+  end
+
+  @complex_scene """
+  [gd_scene load_steps=4 format=3 uid="uid://cecaux1sm7mo0"]
+  [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k54se"]
+  albedo_color = Color(1, 0.639216, 0.309804, 1)
+  [node name="OmniLight3D" type="OmniLight3D" parent="."]
+  light_color = Color(1, 0.698039, 0.321569, 1)
+  omni_range = 10.0
+  """
+
+  test "parses complex scene correctly" do
+    assert [
+      {:ok, ["[gd_scene load_steps=", "4 format=3 uid=\"uid://cecaux1sm7mo0\"]\r"], "", %{}, {1, 0}, 59},
+      {:ok, ["[sub_resource type=\"", "StandardMaterial3D\" id=\"StandardMaterial3D_k54se\"]\r"], "", %{}, {1, 0}, 71},
+      {:ok, "albedo_color = Color(1, 0.639216, 0.309804, 1)\r"},
+      {:ok, ["[node name=\"", "OmniLight3D\" type=\"OmniLight3D\" parent=\".\"]", 13], "", %{}, {1, 0}, 56},
+      {:ok, "light_color = Color(1, 0.698039, 0.321569, 1)\r"},
+      {:ok, "omni_range = 10.0\r"},
+      {:ok, ""}
+    ] = Parser.tscn_parser(@complex_scene)
   end
 end
