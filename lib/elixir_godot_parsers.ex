@@ -34,25 +34,34 @@ defmodule ElixirGodotParsers do
     |> ignore(string("\""))
     |> tag(:uid)
 
-  property =
-    ignore(string(" "))
-    |> repeat_while(utf8_char([]), {:not_space, []})
+  property_name =
+    utf8_string([], min: 1, until: string(" = "))
     |> ignore(string(" = "))
-    |> repeat_while(utf8_char([]), {:not_space, []})
-    |> tag(:property)
+
+  property_value =
+    choice([
+      string("\"")
+      |> utf8_string([], min: 1, until: string("\""))
+      |> ignore(string("\"")),
+      integer(min: 1),
+      utf8_string([], min: 1) # Add this line to handle unquoted strings
+    ])
+
+  property =
+    utf8_string([], min: 1, until: string(" = "))
+    |> ignore(string(" = "))
+    |> utf8_string([], min: 1, until: string("\n"))
+    |> wrap()
 
   sub_resource =
     ignore(string("[sub_resource type=\""))
-    |> repeat_while(utf8_char([]), {:not_quote, []})
+    |> utf8_string([], min: 1, until: string("\" id=\""))
     |> ignore(string("\" id=\""))
-    |> repeat_while(utf8_char([]), {:not_quote, []})
-    |> ignore(string("]"))
-    |> tag(:sub_resource)
-
-  internal_resources =
-    sub_resource
+    |> utf8_string([], min: 1, until: string("\"]\r\n"))
+    |> ignore(string("\"]\r\n")) # Changed this line
     |> repeat(property)
-    |> tag(:sub_resource_descriptor)
+    |> wrap()
+    |> tag(:sub_resource)
 
   file_descriptor =
     gd_scene
@@ -62,21 +71,12 @@ defmodule ElixirGodotParsers do
     |> choice([ignore(string("]\r\n\r\n")), ignore(string("]"))])
     |> tag(:file_descriptor)
 
-  sub_resource_descriptor =
-    sub_resource
-    |> repeat(property)
-    |> tag(:sub_resource_descriptor)
-
-  external_resources = utf8_string(empty(), min: 1)
-  internal_resources = utf8_string(empty(), min: 1)
-  nodes = utf8_string(empty(), min: 1)
-  connections = utf8_string(empty(), min: 1)
-
-  document = file_descriptor
-    |> optional(external_resources)
-    |> optional(sub_resource_descriptor)
-    |> optional(nodes)
-    |> optional(connections)
+  document =
+    concat(
+      file_descriptor,
+      optional(sub_resource)
+    )
+    |> tag(:document)
 
   defparsec(:tscn, document, debug: false)
 end
