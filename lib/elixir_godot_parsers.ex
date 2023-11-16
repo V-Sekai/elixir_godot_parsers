@@ -44,39 +44,73 @@ defmodule ElixirGodotParsers do
       |> utf8_string([], min: 1, until: string("\""))
       |> ignore(string("\"")),
       integer(min: 1),
-      utf8_string([], min: 1) # Add this line to handle unquoted strings
+      utf8_string([], min: 1)
     ])
 
   property =
-    utf8_string([], min: 1, until: string(" = "))
-    |> ignore(string(" = "))
-    |> utf8_string([], min: 1, until: string("\n"))
-    |> wrap()
-
-  sub_resource =
-    ignore(string("[sub_resource type=\""))
-    |> utf8_string([], min: 1, until: string("\" id=\""))
-    |> ignore(string("\" id=\""))
-    |> utf8_string([], min: 1, until: string("\"]\r\n"))
-    |> ignore(string("\"]\r\n")) # Changed this line
-    |> repeat(property)
-    |> wrap()
-    |> tag(:sub_resource)
-
-  file_descriptor =
-    gd_scene
-    |> optional(load_steps)
-    |> optional(format)
-    |> optional(uid)
-    |> choice([ignore(string("]\r\n\r\n")), ignore(string("]"))])
-    |> tag(:file_descriptor)
-
-  document =
     concat(
-      file_descriptor,
-      optional(sub_resource)
+      property_name,
+      property_value
     )
-    |> tag(:document)
+    |> optional(
+      choice([
+        ignore(string(" ")),
+        ignore(string("\n")),
+        ignore(eos())
+      ])
+    )
+    |> wrap()
+
+    sub_resource =
+      ignore(string("[sub_resource type=\""))
+      |> utf8_string([], min: 1, until: string("\" id=\""))
+      |> ignore(string("\" id=\""))
+      |> utf8_string([], min: 1, until: string("\""))
+      |> ignore(string("\""))
+      |> optional(ignore(string("]")))
+      |> repeat(property, separator: choice([string("\n"), eos()]))
+      |> wrap()
+      |> tag(:sub_resource)
+
+    file_descriptor =
+      gd_scene
+      |> optional(load_steps)
+      |> optional(format)
+      |> optional(uid)
+      |> ignore(optional(string(" ")))
+      |> choice([ignore(string("]\r\n\r\n")), ignore(string("]"))])
+      |> tag(:file_descriptor)
+
+    standard_material_3d =
+      ignore(string("[sub_resource type=\"StandardMaterial3D\" id=\""))
+      |> utf8_string([], min: 1, until: string("\""))
+      |> ignore(string("\""))
+      |> optional(ignore(string("]")))
+      |> repeat(property, separator: choice([string("\n"), eos()]))
+      |> wrap()
+      |> tag(:standard_material_3d)
+
+    section =
+      repeat(
+        choice([
+          ignore(string("\n\n")),
+          utf8_char([])
+        ])
+      )
+      |> tag(:section)
+
+    document =
+      concat(
+        file_descriptor,
+        repeat(
+          concat(
+            ignore(string("\n\n")),
+            section
+          )
+        )
+      )
+      |> tag(:document)
+
 
   defparsec(:tscn, document, debug: false)
 end
